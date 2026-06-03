@@ -54,7 +54,9 @@ between images, so Stop takes effect after the current image finishes.
 ## Adding a config field (common task)
 
 1. Add the input to `index.html` and include it in `TEXT_FIELDS` (or extension handling) in
-   `main.ts` so it persists, and add it to the config object in the submit handler.
+   `main.ts` so it persists, give it a default in `FORM_DEFAULTS`, and add it to the config
+   object in the submit handler. (Text/number field defaults live in `FORM_DEFAULTS` in
+   `main.ts`, not as HTML `value` attributes; extension defaults stay in `index.html`.)
 2. Add the field to `RenameConfig` in `lib.rs` (serde field name must match the JS key).
 3. Use it in `run_rename` / `query_llm`.
 
