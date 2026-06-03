@@ -40,25 +40,14 @@
           </label>
 
           <label>
-            Model name
-            <input type="text" id="model_name" required />
-          </label>
-
-          <label>
             Task prompt
             <textarea id="prompt" rows="4"></textarea>
           </label>
 
-          <div class="row">
-            <label class="narrow">
-              Temperature
-              <input type="number" id="temperature" step="0.1" min="0" max="2" />
-            </label>
-            <label class="narrow">
-              Max tokens <span class="hint">(-1 = unlimited)</span>
-              <input type="number" id="max_tokens" step="1" />
-            </label>
-          </div>
+          <label class="narrow">
+            Max tokens <span class="hint">(-1 = unlimited)</span>
+            <input type="number" id="max_tokens" step="1" />
+          </label>
 
           <fieldset class="extensions">
             <legend>Extensions</legend>

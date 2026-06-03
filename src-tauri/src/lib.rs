@@ -18,9 +18,7 @@ pub struct RenameConfig {
     output_folder: Option<String>,
     filename_prefix: String,
     server_url: String,
-    model_name: String,
     prompt: String,
-    temperature: f32,
     max_tokens: i64,
     /// Lower-cased extensions without the dot, e.g. ["jpg", "jpeg"].
     extensions: Vec<String>,
@@ -100,6 +98,65 @@ fn mime_for(ext: &str) -> &'static str {
     }
 }
 
+/// Derive the `/v1/models` URL from the configured chat-completions URL.
+fn derive_models_url(chat_url: &str) -> String {
+    if chat_url.contains("/chat/completions") {
+        chat_url.replace("/chat/completions", "/models")
+    } else if let Ok(url) = reqwest::Url::parse(chat_url) {
+        format!("{}/v1/models", url.origin().ascii_serialization())
+    } else {
+        chat_url.to_string()
+    }
+}
+
+/// Ask the server which models are loaded and return the first one's id.
+/// LM Studio normally has a single model loaded at a time.
+async fn first_model(client: &reqwest::Client, models_url: &str) -> Result<String, String> {
+    let resp = client
+        .get(models_url)
+        .send()
+        .await
+        .map_err(|e| format!("could not reach model list at {models_url}: {e}"))?;
+    if !resp.status().is_success() {
+        return Err(format!("model list returned {}", resp.status()));
+    }
+    let value: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("invalid model list JSON: {e}"))?;
+    value["data"][0]["id"]
+        .as_str()
+        .map(|s| s.to_string())
+        .ok_or_else(|| "no models are loaded on the server".to_string())
+}
+
+/// Whether two paths refer to the same existing file (by canonical path).
+fn same_path(a: &Path, b: &Path) -> bool {
+    match (a.canonicalize(), b.canonicalize()) {
+        (Ok(x), Ok(y)) => x == y,
+        _ => false,
+    }
+}
+
+/// Find a free destination path: `<stem>.<ext>`, then `<stem>_1.<ext>`,
+/// `<stem>_2.<ext>`, … The source's own path counts as free, so a file that is
+/// already correctly named is not bumped to a `_1` variant.
+fn next_available(dir: &Path, stem: &str, ext: &str, source: &Path) -> PathBuf {
+    let mut n = 0usize;
+    loop {
+        let name = if n == 0 {
+            format!("{stem}.{ext}")
+        } else {
+            format!("{stem}_{n}.{ext}")
+        };
+        let candidate = dir.join(&name);
+        if !candidate.exists() || same_path(&candidate, source) {
+            return candidate;
+        }
+        n += 1;
+    }
+}
+
 /// Collect matching image files from the folder, sorted by name for stable order.
 fn collect_images(folder: &Path, extensions: &[String]) -> std::io::Result<Vec<PathBuf>> {
     let wanted: Vec<String> = extensions.iter().map(|e| e.to_ascii_lowercase()).collect();
@@ -121,6 +178,7 @@ fn collect_images(folder: &Path, extensions: &[String]) -> std::io::Result<Vec<P
 async fn query_llm(
     client: &reqwest::Client,
     config: &RenameConfig,
+    model: &str,
     image_path: &Path,
 ) -> Result<String, String> {
     let bytes = std::fs::read(image_path).map_err(|e| format!("read failed: {e}"))?;
@@ -134,7 +192,7 @@ async fn query_llm(
     // OpenAI Chat Completions content parts (what LM Studio expects). Note this
     // differs from the original script, which used the Responses-API field names.
     let payload = json!({
-        "model": config.model_name,
+        "model": model,
         "messages": [{
             "role": "user",
             "content": [
@@ -143,7 +201,6 @@ async fn query_llm(
             ]
         }],
         "max_tokens": config.max_tokens,
-        "temperature": config.temperature,
         "stream": false
     });
 
@@ -196,12 +253,18 @@ async fn run_rename(
         _ => (folder.clone(), false),
     };
 
+    let client = reqwest::Client::new();
+
+    // Use whichever model the server currently has loaded.
+    let models_url = derive_models_url(&config.server_url);
+    let model = first_model(&client, &models_url).await?;
+    emit(&app, 0, 0, "", "info", &format!("Using model: {model}"));
+
     let images = collect_images(&folder, &config.extensions)
         .map_err(|e| format!("could not read folder: {e}"))?;
     let total = images.len();
     emit(&app, 0, total, "", "info", &format!("Found {total} image(s)"));
 
-    let client = reqwest::Client::new();
     let mut renamed = 0usize;
     let mut copied = 0usize;
     let mut skipped = 0usize;
@@ -222,7 +285,7 @@ async fn run_rename(
             .to_string();
         emit(&app, idx, total, &name, "info", "processing");
 
-        let answer = match query_llm(&client, &config, image_path).await {
+        let answer = match query_llm(&client, &config, &model, image_path).await {
             Ok(a) => a,
             Err(e) => {
                 errors += 1;
@@ -242,12 +305,19 @@ async fn run_rename(
             .extension()
             .and_then(|e| e.to_str())
             .unwrap_or("jpg");
-        let new_name = format!("{}{}.{}", config.filename_prefix, sanitized, ext);
-        let dest = dest_dir.join(&new_name);
+        let stem = format!("{}{}", config.filename_prefix, sanitized);
+        // On a name clash with a different file, fall back to <stem>_1, _2, …
+        let dest = next_available(&dest_dir, &stem, ext, image_path);
+        let new_name = dest
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("")
+            .to_string();
 
-        if dest.exists() {
+        // The file is already correctly named (destination resolves to itself).
+        if same_path(&dest, image_path) {
             skipped += 1;
-            emit(&app, done, total, &name, "skipped", &format!("{new_name} already exists"));
+            emit(&app, done, total, &name, "skipped", &format!("already named {new_name}"));
             continue;
         }
 

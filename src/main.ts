@@ -20,9 +20,7 @@ const TEXT_FIELDS = [
   "output_folder",
   "filename_prefix",
   "server_url",
-  "model_name",
   "prompt",
-  "temperature",
   "max_tokens",
 ] as const;
 
@@ -36,7 +34,6 @@ const FORM_DEFAULTS: Record<(typeof TEXT_FIELDS)[number], string> = {
   output_folder: "",
   filename_prefix: "",
   server_url: "http://localhost:1234/v1/chat/completions",
-  model_name: "gemma-4-e2b-it",
   prompt:`Task: Extract the plate identifier from the label.
 Instructions: Find the line starting with "Plate" and output only the alphanumeric code after it.
 
@@ -49,7 +46,6 @@ Examples:
 - If label reads "Plate 2 F2", output: 2F2
 
 Output:`,
-  temperature: "1",
   max_tokens: "-1",
 };
 
@@ -201,9 +197,7 @@ form.addEventListener("submit", async (e) => {
     output_folder: $<HTMLInputElement>("output_folder").value.trim() || null,
     filename_prefix: $<HTMLInputElement>("filename_prefix").value,
     server_url: $<HTMLInputElement>("server_url").value.trim(),
-    model_name: $<HTMLInputElement>("model_name").value.trim(),
     prompt: $<HTMLTextAreaElement>("prompt").value,
-    temperature: parseFloat($<HTMLInputElement>("temperature").value) || 0,
     max_tokens: parseInt($<HTMLInputElement>("max_tokens").value, 10) || -1,
     extensions: selectedExtensions(),
   };
