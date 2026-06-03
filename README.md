@@ -18,16 +18,16 @@ All settings live in the single form and are remembered between launches:
 | **Image folder** | Folder to scan (non-recursive). |
 | **Output folder** | Optional. If set, renamed files are **copied** here and originals are left untouched. Empty = rename **in place**. |
 | **Filename prefix** | Prepended to every new name. |
-| **Server URL** | Chat-completions endpoint. Default `http://localhost:1234/v1/chat/completions`. |
-| **Model name** | Model identifier as the server expects it. |
+| **Server URL** | Chat-completions endpoint. Default `http://localhost:1234/v1/chat/completions`. The app auto-selects whichever model the server currently has loaded (queried from `/v1/models`). |
 | **Prompt** | Instruction sent with each image. The model's reply becomes the filename. |
-| **Temperature / Max tokens** | Sampling controls (`-1` max tokens = unlimited). |
+| **Max tokens** | Response length cap (`-1` = unlimited). |
 | **Extensions** | Which image types to process (jpg/jpeg on by default). |
 
 The model's reply is sanitized for use as a filename (anything outside `A–Z a–z 0–9 _ . -`
 becomes `_`, repeats collapsed, ends trimmed). Files are processed one at a time. A file is
-skipped if the sanitized reply is empty or the target name already exists. Use **Stop** to
-halt after the current image.
+skipped only if the sanitized reply is empty or the file is already correctly named; on a name
+clash with a *different* file the new name gets a numeric suffix (`name.jpg`, `name_1.jpg`,
+`name_2.jpg`, …). Use **Stop** to halt after the current image.
 
 ## Development
 

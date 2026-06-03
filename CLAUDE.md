@@ -26,10 +26,13 @@ screen: a config form plus a progress bar / status area.
 
 1. `src/main.ts` gathers the form into a config object and calls
    `invoke("run_rename", { config })`.
-2. `run_rename` (in `lib.rs`) scans the folder, then **sequentially** for each image:
-   reads bytes → base64 → POSTs an OpenAI **Chat Completions** payload to `server_url` via
-   `reqwest` → extracts `choices[0].message.content` → `sanitize()`s it → renames in place,
-   or copies to `output_folder` when one is set.
+2. `run_rename` (in `lib.rs`) first asks the server which model is loaded
+   (`derive_models_url` → `first_model`, hitting `/v1/models` and taking `data[0].id`), then
+   scans the folder and **sequentially** for each image: reads bytes → base64 → POSTs an
+   OpenAI **Chat Completions** payload to `server_url` via `reqwest` → extracts
+   `choices[0].message.content` → `sanitize()`s it → renames in place, or copies to
+   `output_folder` when one is set. On a name clash with a *different* file, `next_available`
+   appends `_1`, `_2`, … (a file already correctly named is skipped, not bumped).
 3. After every image the backend emits a `renamer://progress` event. The frontend listens and
    updates the bar, counts, and status log. A final `status: "summary"` event ends the run.
 
