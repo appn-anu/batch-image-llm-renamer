@@ -1,0 +1,29 @@
+[package]
+name = "batch-image-llm-renamer"
+version = "0.0.1"
+description = "Batch-rename images from a multimodal LLM's reading of each one"
+authors = ["appn-anu"]
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "batch_image_llm_renamer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
