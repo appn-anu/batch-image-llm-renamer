@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Batch Image Renamer</title>
+  </head>
+  <body>
+    <main class="app">
+      <h1>Batch Image Renamer</h1>
+      <p class="subtitle">Rename images from a multimodal LLM's reading of each one.</p>
+
+      <form id="config-form" autocomplete="off">
+        <fieldset id="config-fieldset">
+          <label>
+            Image folder
+            <div class="path-row">
+              <input type="text" id="image_folder" placeholder="/path/to/images" required />
+              <button type="button" class="browse" data-target="image_folder">Browse…</button>
+            </div>
+          </label>
+
+          <label>
+            Output folder <span class="hint">(optional — empty = rename in place)</span>
+            <div class="path-row">
+              <input type="text" id="output_folder" placeholder="Leave empty to rename in place" />
+              <button type="button" class="browse" data-target="output_folder">Browse…</button>
+              <button type="button" id="clear_output" title="Clear">✕</button>
+            </div>
+          </label>
+
+          <label>
+            Filename prefix
+            <input type="text" id="filename_prefix" placeholder="e.g. plate_" />
+          </label>
+
+          <label>
+            Server URL
+            <input type="text" id="server_url" value="http://localhost:1234/v1/chat/completions" required />
+          </label>
+
+          <label>
+            Model name
+            <input type="text" id="model_name" value="qwen3-vl-8b-instruct" required />
+          </label>
+
+          <label>
+            Prompt
+            <textarea id="prompt" rows="4">Hi Qwen, please read the 'Plate' text from the label. The text should consist of a one digit number, one uppercase letter, and another one digit number. Print only this text. Thanks!</textarea>
+          </label>
+
+          <div class="row">
+            <label class="narrow">
+              Temperature
+              <input type="number" id="temperature" value="0.7" step="0.1" min="0" max="2" />
+            </label>
+            <label class="narrow">
+              Max tokens <span class="hint">(-1 = unlimited)</span>
+              <input type="number" id="max_tokens" value="-1" step="1" />
+            </label>
+          </div>
+
+          <fieldset class="extensions">
+            <legend>Extensions</legend>
+            <label class="inline"><input type="checkbox" class="ext" value="jpg" checked /> jpg</label>
+            <label class="inline"><input type="checkbox" class="ext" value="jpeg" checked /> jpeg</label>
+            <label class="inline"><input type="checkbox" class="ext" value="png" /> png</label>
+            <label class="inline"><input type="checkbox" class="ext" value="webp" /> webp</label>
+          </fieldset>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" id="start-btn">Start</button>
+          <button type="button" id="stop-btn" class="danger" hidden>Stop</button>
+        </div>
+      </form>
+
+      <section class="run-area">
+        <progress id="progress-bar" value="0" max="1"></progress>
+        <div class="run-meta">
+          <span id="current-file">Idle</span>
+          <span id="counts"></span>
+        </div>
+        <ul id="status-log" class="status-log"></ul>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
