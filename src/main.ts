@@ -36,10 +36,20 @@ const FORM_DEFAULTS: Record<(typeof TEXT_FIELDS)[number], string> = {
   output_folder: "",
   filename_prefix: "",
   server_url: "http://localhost:1234/v1/chat/completions",
-  model_name: "qwen3-vl-8b-instruct",
-  prompt:
-    "Hi Qwen, please read the 'Plate' text from the label. The text should consist of a one digit number, one uppercase letter, and another one digit number. Print only this text. Thanks!",
-  temperature: "0.7",
+  model_name: "gemma-4-e2b-it",
+  prompt:`Task: Extract the plate identifier from the label.
+Instructions: Find the line starting with "Plate" and output only the alphanumeric code after it.
+
+Expected Output Format:
+<value>
+
+Examples:
+- If label reads "Plate 1 A1", output: 1A1
+- If label reads "Plate 4 G12", output: 4G12
+- If label reads "Plate 2 F2", output: 2F2
+
+Output:`,
+  temperature: "1",
   max_tokens: "-1",
 };
 
