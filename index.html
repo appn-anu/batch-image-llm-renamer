@@ -8,7 +8,7 @@
   <body>
     <main class="app">
       <h1>Batch Image Renamer</h1>
-      <p class="subtitle">Rename images from a multimodal LLM's reading of each one.</p>
+      <p class="subtitle">Rename images based on what a vision-enabled LLM can see in them.</p>
 
       <form id="config-form" autocomplete="off">
         <fieldset id="config-fieldset">
@@ -21,7 +21,7 @@
           </label>
 
           <label>
-            Output folder <span class="hint">(optional — empty = rename in place)</span>
+            Output folder <span class="hint">(optional: leave empty to rename images in place)</span>
             <div class="path-row">
               <input type="text" id="output_folder" placeholder="Leave empty to rename in place" />
               <button type="button" class="browse" data-target="output_folder">Browse…</button>
@@ -45,7 +45,7 @@
           </label>
 
           <label>
-            Prompt
+            Task prompt
             <textarea id="prompt" rows="4"></textarea>
           </label>
 
