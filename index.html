@@ -36,27 +36,27 @@
 
           <label>
             Server URL
-            <input type="text" id="server_url" value="http://localhost:1234/v1/chat/completions" required />
+            <input type="text" id="server_url" required />
           </label>
 
           <label>
             Model name
-            <input type="text" id="model_name" value="qwen3-vl-8b-instruct" required />
+            <input type="text" id="model_name" required />
           </label>
 
           <label>
             Prompt
-            <textarea id="prompt" rows="4">Hi Qwen, please read the 'Plate' text from the label. The text should consist of a one digit number, one uppercase letter, and another one digit number. Print only this text. Thanks!</textarea>
+            <textarea id="prompt" rows="4"></textarea>
           </label>
 
           <div class="row">
             <label class="narrow">
               Temperature
-              <input type="number" id="temperature" value="0.7" step="0.1" min="0" max="2" />
+              <input type="number" id="temperature" step="0.1" min="0" max="2" />
             </label>
             <label class="narrow">
               Max tokens <span class="hint">(-1 = unlimited)</span>
-              <input type="number" id="max_tokens" value="-1" step="1" />
+              <input type="number" id="max_tokens" step="1" />
             </label>
           </div>
 

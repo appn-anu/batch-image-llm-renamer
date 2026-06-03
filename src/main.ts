@@ -26,6 +26,23 @@ const TEXT_FIELDS = [
   "max_tokens",
 ] as const;
 
+// ---- Editable form defaults ----
+// Change these to update what the form starts with on a fresh launch (or after
+// saved settings are cleared). Saved settings take precedence once the user has
+// edited a field. Extensions are intentionally NOT here — their defaults live in
+// index.html, since changing them usually means changing which options exist too.
+const FORM_DEFAULTS: Record<(typeof TEXT_FIELDS)[number], string> = {
+  image_folder: "",
+  output_folder: "",
+  filename_prefix: "",
+  server_url: "http://localhost:1234/v1/chat/completions",
+  model_name: "qwen3-vl-8b-instruct",
+  prompt:
+    "Hi Qwen, please read the 'Plate' text from the label. The text should consist of a one digit number, one uppercase letter, and another one digit number. Print only this text. Thanks!",
+  temperature: "0.7",
+  max_tokens: "-1",
+};
+
 const $ = <T extends HTMLElement>(id: string): T =>
   document.getElementById(id) as T;
 
@@ -50,6 +67,12 @@ function saveConfig() {
   }
   data.extensions = selectedExtensions();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function applyDefaults() {
+  for (const id of TEXT_FIELDS) {
+    $<HTMLInputElement>(id).value = FORM_DEFAULTS[id];
+  }
 }
 
 function loadConfig() {
@@ -208,4 +231,5 @@ stopBtn.addEventListener("click", async () => {
   await invoke("cancel_rename");
 });
 
+applyDefaults();
 loadConfig();
