@@ -4,10 +4,10 @@ A minimal desktop app that batch-renames images by asking a multimodal LLM to re
 one. Point it at a folder, describe what to extract in the prompt, and each image is renamed
 (or copied) to `<prefix><model answer><.ext>`.
 
-> _Business context / intended workflow: TODO — fill in._
+First deployed for smart OCR, e.g. reading specific parts of labels in photos with plants and reading handwritten labels, where traditional OCR either can't segment text or recognize text easily. Can also be used for any basic classification task that LLMs can do (e.g. "what color is the background of this image").
 
 The app talks to any OpenAI-compatible chat-completions endpoint with vision support
-(e.g. [LM Studio](https://lmstudio.ai/), Ollama, llama.cpp server).
+(e.g. [LM Studio](https://lmstudio.ai/), llama.cpp server).
 
 ## Configuration
 
@@ -65,3 +65,5 @@ On first launch users must right-click the app → **Open**, or clear the quaran
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Batch Image Renamer.app"
 ```
+
+If that still doesn't work, try the instructions from this [Apple Support page](https://support.apple.com/en-au/guide/mac-help/mh40616/mac).
